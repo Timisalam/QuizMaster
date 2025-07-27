@@ -1,0 +1,94 @@
+version: '3.1'
+
+services:
+
+    db:
+        image: postgres
+        restart: always
+        container_name: database
+        environment:
+            POSTGRES_DB: newdb
+            POSTGRES_PASSWORD: password
+        volumes:
+            - newdb:/var/lib/postgresql/data
+        ports:
+            - "5433:5432"
+        tty: true
+
+    user-service:
+        build:
+            context: ./user-service
+        depends_on:
+            - db
+        restart: always
+        environment:
+            POSTGRES_DB: newdb
+            POSTGRES_PASSWORD: password
+        ports:
+            - "8081:8081"
+
+    quiz-service:
+        build:
+            context: ./quiz-service
+        depends_on:
+            - db
+            - user-service
+        restart: always
+        environment:
+            POSTGRES_DB: newdb
+            POSTGRES_PASSWORD: password
+        ports:
+            - "8082:8082"    
+    
+    grading-service:
+        build:
+            context: ./grading-service
+        depends_on:
+            - db
+            - user-service
+            - quiz-service
+        restart: always
+        environment:
+            POSTGRES_DB: newdb
+            POSTGRES_PASSWORD: password
+        ports:
+            - "8083:8083"
+
+    course-service:
+        build:
+            context: ./course-service
+        depends_on:
+            - db
+        restart: always
+        environment:
+            POSTGRES_DB: newdb
+            POSTGRES_PASSWORD: password
+        ports:
+            - "8085:8085"
+
+    enrolment-service:
+        build:
+            context: ./enrolment-service
+        depends_on:
+            - db
+        restart: always
+        environment:
+            POSTGRES_DB: newdb
+            POSTGRES_PASSWORD: password
+        ports:
+            - "8084:8084"        
+
+    frontend:
+        build:
+            context: ./frontend
+        depends_on:
+            - user-service
+        restart: always
+        environment:
+            POSTGRES_DB: newdb
+            POSTGRES_PASSWORD: password
+        ports:
+            - "8080:8080"
+
+volumes:
+    newdb:
